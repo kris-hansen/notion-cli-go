@@ -1,0 +1,20 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Go build files
+*.o
+*.a
+*.exe
+
+# Go test files
+*.test
+*.prof
+
+# IDE files
+.vscode/
+.idea/
+
+# Project env
+.env
