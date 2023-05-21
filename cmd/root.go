@@ -5,22 +5,24 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "notioncli",
-	Short: "notioncli provides a CLI interface to track your tasks in a Notion page",
-	Long: `notioncli works with the official Notion API to extend a Notion page with to-dos into your command line environment.
+	Short: "Notioncli provides a CLI interface to track your tasks in a Notion page",
+	Long: `Notioncli is a tool that utilizes the official Notion API to enable the integration of to-do lists from Notion pages into your command line interface.
 	
 		This version supports the following options:
 		--list (to list tasks)
 		--create <task> (create a new task)
-		--done <number> (mark a task done)
-		--undone <number> (mark a task as not done)
+		--check <number> (mark a task done)
+		--uncheck <number> (mark a task as not done)
 		--delete <number> (permanently remove a task)
 		--help (get some help)`,
 }
@@ -28,6 +30,8 @@ var rootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	boldBlue := color.New(color.Bold, color.FgBlue).SprintFunc()
+	fmt.Println(boldBlue("----=[ NotionCLI ]=----"))
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)

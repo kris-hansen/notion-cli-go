@@ -9,6 +9,7 @@ import (
 	"notioncli/utils"
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +20,7 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		notionAPIKey, pageID := utils.SetAPIConfig()
 		localTimezone, err := utils.GetLocalTimeZone()
+		brightWhite := color.New(color.FgHiWhite).SprintFunc()
 		if err != nil {
 			fmt.Println("Error getting the local time zone: ", err)
 
@@ -31,8 +33,7 @@ var listCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		for _, block := range blocks {
-			fmt.Println(block)
-			fmt.Println()
+			fmt.Println(brightWhite(block))
 		}
 	},
 }
@@ -40,6 +41,4 @@ var listCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(listCmd)
 
-	// add any necessary flags here
-	listCmd.Flags().BoolP("completed", "c", false, "List completed tasks only")
 }

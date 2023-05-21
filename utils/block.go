@@ -64,9 +64,9 @@ type BlockList struct {
 	DeveloperSurvey string   `json:"developer_survey"`
 }
 
-func GetBlocks(notionAPIKey, blockID string) ([]Block, error) {
+func GetBlocks(notionAPIKey, pageID string) ([]Block, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", baseURL+"blocks/"+blockID+"/children", nil)
+	req, err := http.NewRequest("GET", baseURL+"blocks/"+pageID+"/children", nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
@@ -122,30 +122,31 @@ func GetToDoBlocks(notionAPIKey, blockID string, localTimezone *time.Location) (
 	return todoBlocks, nil
 }
 
-func AddToDoBlock(notionAPIKey, pageID, content string) error {
+func AddToDoBlock(notionAPIKey, blockID, text string) error {
 	client := &http.Client{}
-	reqBody := map[string]interface{}{
-		"parent": map[string]interface{}{
-			"page_id": pageID,
-		},
+	reqBody, err := json.Marshal(map[string]interface{}{
+		"object": "block",
+		"type":   "to_do",
 		"to_do": map[string]interface{}{
-			"title": []map[string]interface{}{
+			"text": []map[string]interface{}{
 				{
+					"type": "text",
 					"text": map[string]interface{}{
-						"content": content,
+						"content": text,
 					},
 				},
 			},
 		},
-	}
-	reqBodyJSON, err := json.Marshal(reqBody)
+	})
 	if err != nil {
-		return err
+		return fmt.Errorf("error marshalling request body: %v", err)
 	}
-	req, err := http.NewRequest("POST", baseURL+"blocks", bytes.NewBuffer(reqBodyJSON))
+
+	req, err := http.NewRequest("POST", baseURL+"blocks/"+blockID+"/children", bytes.NewBuffer(reqBody))
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating request: %v", err)
 	}
+
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("Notion-Version", "2022-06-28")
 	req.Header.Set("Authorization", "Bearer "+notionAPIKey)
@@ -155,6 +156,78 @@ func AddToDoBlock(notionAPIKey, pageID, content string) error {
 		return err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func GetBlockID(notionAPIKey, pageID string, order int) (string, error) {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", baseURL+"blocks/"+pageID+"/children", nil)
+	if err != nil {
+		return "", fmt.Errorf("error creating request: %v", err)
+	}
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Notion-Version", "2022-06-28")
+	req.Header.Set("Authorization", "Bearer "+notionAPIKey)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	var blockList BlockList
+	err = json.NewDecoder(resp.Body).Decode(&blockList)
+	if err != nil {
+		return "", err
+	}
+
+	if order > len(blockList.Results) {
+		return "", fmt.Errorf("order number exceeds the number of blocks")
+	}
+
+	return blockList.Results[order-1].ID, nil
+}
+
+func MarkToDoBlockChecked(notionAPIKey, pageID string, order int) error {
+
+	blockID, err := GetBlockID(notionAPIKey, pageID, order)
+	if err != nil {
+		return err
+	}
+	client := &http.Client{}
+	reqBody, err := json.Marshal(map[string]interface{}{
+		"to_do": map[string]interface{}{
+			"checked": true,
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("error marshalling request body: %v", err)
+	}
+
+	req, err := http.NewRequest("PATCH", baseURL+"blocks/"+blockID, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return fmt.Errorf("error creating request: %v", err)
+	}
+
+	req.Header.Add("accept", "application/json")
+	req.Header.Add("Notion-Version", "2022-06-28")
+	req.Header.Set("Authorization", "Bearer "+notionAPIKey)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
 
 	return nil
 }
