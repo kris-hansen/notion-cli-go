@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -122,17 +123,21 @@ func GetToDoBlocks(notionAPIKey, blockID string, localTimezone *time.Location) (
 	return todoBlocks, nil
 }
 
-func AddToDoBlock(notionAPIKey, blockID, text string) error {
+func AddNewToDoItem(notionAPIKey, pageID, text string) error {
 	client := &http.Client{}
 	reqBody, err := json.Marshal(map[string]interface{}{
-		"object": "block",
-		"type":   "to_do",
-		"to_do": map[string]interface{}{
-			"text": []map[string]interface{}{
-				{
-					"type": "text",
-					"text": map[string]interface{}{
-						"content": text,
+		"children": []map[string]interface{}{
+			{
+				"object": "block",
+				"type":   "to_do",
+				"to_do": map[string]interface{}{
+					"rich_text": []map[string]interface{}{
+						{
+							"type": "text",
+							"text": map[string]interface{}{
+								"content": text,
+							},
+						},
 					},
 				},
 			},
@@ -142,12 +147,12 @@ func AddToDoBlock(notionAPIKey, blockID, text string) error {
 		return fmt.Errorf("error marshalling request body: %v", err)
 	}
 
-	req, err := http.NewRequest("POST", baseURL+"blocks/"+blockID+"/children", bytes.NewBuffer(reqBody))
+	req, err := http.NewRequest("PATCH", baseURL+"blocks/"+pageID+"/children", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return fmt.Errorf("error creating request: %v", err)
 	}
 
-	req.Header.Add("accept", "application/json")
+	req.Header.Add("Content-Type", "application/json; charset=utf-8")
 	req.Header.Add("Notion-Version", "2022-06-28")
 	req.Header.Set("Authorization", "Bearer "+notionAPIKey)
 
@@ -158,7 +163,8 @@ func AddToDoBlock(notionAPIKey, blockID, text string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("unexpected status code: %d, message: %s", resp.StatusCode, string(bodyBytes))
 	}
 
 	return nil

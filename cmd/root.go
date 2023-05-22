@@ -19,12 +19,12 @@ var rootCmd = &cobra.Command{
 	Long: `Notioncli is a tool that utilizes the official Notion API to enable the integration of to-do lists from Notion pages into your command line interface.
 	
 		This version supports the following options:
-		--list (to list tasks)
-		--create <task> (create a new task)
-		--check <number> (mark a task done)
-		--uncheck <number> (mark a task as not done)
-		--delete <number> (permanently remove a task)
-		--help (get some help)`,
+		  list (to list tasks)
+		  add <task> (create a new task)
+		  check <number> (mark a task done)
+		  uncheck <number> (mark a task as not done)
+		  delete <number> (permanently remove a task)
+		  help (get some help)`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
