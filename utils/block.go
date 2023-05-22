@@ -281,3 +281,31 @@ func MarkToDoBlockUnChecked(notionAPIKey, pageID string, order int) error {
 
 	return nil
 }
+
+func DeleteToDoBlock(notionAPIKey, pageID string, order int) error {
+	blockID, err := GetBlockID(notionAPIKey, pageID, order)
+	if err != nil {
+		return err
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("DELETE", baseURL+"blocks/"+blockID, nil)
+	if err != nil {
+		return fmt.Errorf("error creating request: %v", err)
+	}
+
+	req.Header.Add("Notion-Version", "2022-06-28")
+	req.Header.Set("Authorization", "Bearer "+notionAPIKey)
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return nil
+}
