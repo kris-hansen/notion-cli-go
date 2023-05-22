@@ -23,7 +23,6 @@ var listCmd = &cobra.Command{
 		brightWhite := color.New(color.FgHiWhite).SprintFunc()
 		if err != nil {
 			fmt.Println("Error getting the local time zone: ", err)
-
 			os.Exit(1)
 		}
 		blocks, err := utils.GetToDoBlocks(notionAPIKey, pageID, localTimezone)
@@ -40,5 +39,4 @@ var listCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(listCmd)
-
 }
