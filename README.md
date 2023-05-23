@@ -19,14 +19,15 @@ go install .
 
 ## Configuration
 
-Before running the notioncli tool, you need to set the following environment variables (see the .env.example file):
+Before running the notioncli tool, you need to set the following environment variables:
 
 - `NOTION_API_KEY`: Your Notion Official API key.
-- `NOTION_PAGE_ID`: The URL for the page (ex: https://notion.so/my-page/{pageID}). Here are some [tips](https://developers.notion.com/docs/working-with-page-content#:~:text=Open%20the%20page%20in%20Notion,ends%20in%20a%20page%20ID.) for finding your page ID. You will also need to share this page as an integration to expose it to the cli tool.
+- `NOTION_PAGE_ID`: The URL for the page (ex: https://notion.so/my-page/{pageID}). Here are some [tips](https://developers.notion.com/docs/working-with-page-content#:~:text=Open%20the%20page%20in%20Notion,ends%20in%20a%20page%20ID.) for finding your page ID. You will also need to share this page as an integration to expose it to the cli tool. Keep in mind that the page ID in the URL will have the title as `Title-<PageID>` and the title portion will need to be removed.
 - `LOCAL_TIMEZONE`: Your local timezone (ex: 'America/New_York').
 
 For the `NOTION_API_KEY`, visit [Notion's integration page](https://www.notion.so/my-integrations) and create a new integration. Remember to share your task page with the integration.
 
+Your `.env` file can either be located in your working directory or in `~/.config/notioncli/.env` - for convenience there is a sample env file named `.env.example` 
 ## Usage
 
 You can interact with the tool using the built binary:
