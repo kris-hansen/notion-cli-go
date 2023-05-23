@@ -3,18 +3,38 @@ package utils
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/joho/godotenv"
 )
 
 func SetAPIConfig() (string, string) {
-	err := godotenv.Load()
-
+	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		fmt.Println("Error getting home directory: ", err)
 		os.Exit(1)
 	}
+
+	envPathHomeDir := filepath.Join(homeDir, ".config/notioncli/.env")
+	workingDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting current directory: ", err)
+		os.Exit(1)
+	}
+
+	envPathWorkingDir := filepath.Join(workingDir, ".env")
+	err = godotenv.Load(envPathWorkingDir)
+
+	if err != nil {
+		// If the env file is not found in the working directory, try to load it from the home directory
+		err = godotenv.Load(envPathHomeDir)
+		if err != nil {
+			fmt.Println("Error loading .env file: ", err)
+			os.Exit(1)
+		}
+	}
+
 	notionAPIKey, ok := os.LookupEnv("NOTION_API_KEY")
 	if !ok {
 		fmt.Println("NOTION_API_KEY environment variable not found")
@@ -29,11 +49,29 @@ func SetAPIConfig() (string, string) {
 }
 
 func GetLocalTimeZone() (*time.Location, error) {
-	err := godotenv.Load()
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("Error getting home directory: ", err)
+		os.Exit(1)
+	}
+
+	envPathHomeDir := filepath.Join(homeDir, ".config/notioncli/.env")
+	workingDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting current directory: ", err)
+		os.Exit(1)
+	}
+
+	envPathWorkingDir := filepath.Join(workingDir, ".env")
+	err = godotenv.Load(envPathWorkingDir)
 
 	if err != nil {
-		fmt.Println("Error loading .env file")
-		os.Exit(1)
+		// If the env file is not found in the working directory, try to load it from the home directory
+		err = godotenv.Load(envPathHomeDir)
+		if err != nil {
+			fmt.Println("Error loading .env file: ", err)
+			os.Exit(1)
+		}
 	}
 	localTimeZone, ok := os.LookupEnv("LOCAL_TIMEZONE")
 	if !ok {
