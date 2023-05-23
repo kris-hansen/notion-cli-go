@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const baseURL = "https://api.notion.com/v1/"
+var baseURL = "https://api.notion.com/v1"
 
 var blocks []Block
 
@@ -67,7 +67,7 @@ type BlockList struct {
 
 func GetBlocks(notionAPIKey, pageID string) ([]Block, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", baseURL+"blocks/"+pageID+"/children", nil)
+	req, err := http.NewRequest("GET", baseURL+"/blocks/"+pageID+"/children", nil)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
@@ -147,7 +147,7 @@ func AddNewToDoItem(notionAPIKey, pageID, text string) error {
 		return fmt.Errorf("error marshalling request body: %v", err)
 	}
 
-	req, err := http.NewRequest("PATCH", baseURL+"blocks/"+pageID+"/children", bytes.NewBuffer(reqBody))
+	req, err := http.NewRequest("PATCH", baseURL+"/blocks/"+pageID+"/children", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return fmt.Errorf("error creating request: %v", err)
 	}
@@ -175,7 +175,7 @@ func GetBlockID(notionAPIKey, pageID string, order int) (string, error) {
 		return "", fmt.Errorf("order must be greater than 0")
 	}
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", baseURL+"blocks/"+pageID+"/children", nil)
+	req, err := http.NewRequest("GET", baseURL+"/blocks/"+pageID+"/children", nil)
 	if err != nil {
 		return "", fmt.Errorf("error creating request: %v", err)
 	}
@@ -220,7 +220,7 @@ func MarkToDoBlockChecked(notionAPIKey, pageID string, order int) error {
 		return fmt.Errorf("error marshalling request body: %v", err)
 	}
 
-	req, err := http.NewRequest("PATCH", baseURL+"blocks/"+blockID, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequest("PATCH", baseURL+"/blocks/"+blockID, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return fmt.Errorf("error creating request: %v", err)
 	}
@@ -259,7 +259,7 @@ func MarkToDoBlockUnChecked(notionAPIKey, pageID string, order int) error {
 		return fmt.Errorf("error marshalling request body: %v", err)
 	}
 
-	req, err := http.NewRequest("PATCH", baseURL+"blocks/"+blockID, bytes.NewBuffer(reqBody))
+	req, err := http.NewRequest("PATCH", baseURL+"/blocks/"+blockID, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return fmt.Errorf("error creating request: %v", err)
 	}
@@ -288,16 +288,16 @@ func DeleteToDoBlock(notionAPIKey, pageID string, order int) error {
 		return err
 	}
 	client := &http.Client{}
-	req, err := http.NewRequest("DELETE", baseURL+"blocks/"+blockID, nil)
+	req, err := http.NewRequest("DELETE", baseURL+"/blocks/"+blockID, nil)
 	if err != nil {
 		return fmt.Errorf("error creating request: %v", err)
 	}
 
 	req.Header.Add("Notion-Version", "2022-06-28")
+	req.Header.Add("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", "Bearer "+notionAPIKey)
 
 	resp, err := client.Do(req)
-
 	if err != nil {
 		return err
 	}
