@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,6 +17,24 @@ func SetBaseURL(url string) {
 	baseURL = url
 }
 
+func mockBlock(texts []string) Block {
+
+	richTexts := make([]RichText, len(texts))
+	for i, text := range texts {
+		richTexts[i] = RichText{PlainText: text}
+	}
+
+	return Block{
+		Object: "block",
+		ID:     "blockID",
+		Type:   "to_do",
+		ToDo: &ToDo{
+			Checked:  false,
+			RichText: richTexts,
+		},
+	}
+}
+
 func setup() {
 	deletedBlocks = make(map[string]bool)
 	mockServer = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -24,11 +43,44 @@ func setup() {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("{}")) // Send back an empty JSON body for DELETE requests
 		case r.URL.Path == "/blocks/pageID/children":
-			response := `{"object": "list", "results": [{"object": "block", "id": "blockID", "type": "to_do", "to_do": {"checked": false, "rich_text": [{"plain_text": "test todo"}]}}]}`
-			w.Write([]byte(response))
+
+			result := BlockList{
+				Results: []Block{
+					mockBlock([]string{"test todo"}),
+				},
+			}
+			err := json.NewEncoder(w).Encode(result)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+
+		case r.URL.Path == "/blocks/pageWithToDoWithNoContent/children":
+
+			result := BlockList{
+				Results: []Block{
+					mockBlock([]string{}),
+					mockBlock([]string{"test todo"}),
+				},
+			}
+			err := json.NewEncoder(w).Encode(result)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
 		case r.URL.Path == "/blocks/blockID":
-			response := `{"object": "block", "id": "blockID", "type": "to_do", "to_do": {"checked": true, "rich_text": [{"plain_text": "test todo"}]}}`
-			w.Write([]byte(response))
+
+			result := Block{
+				Object: "block",
+				ID:     "blockID",
+				Type:   "to_do",
+				ToDo: &ToDo{
+					Checked:  true,
+					RichText: []RichText{{PlainText: "test todo"}},
+				},
+			}
+			err := json.NewEncoder(w).Encode(result)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	}))
 	SetBaseURL(mockServer.URL)
@@ -53,6 +105,23 @@ func TestGetBlocks(t *testing.T) {
 	if len(blocks) != 1 {
 		t.Errorf("Expected 1 block, got: %v", len(blocks))
 	}
+}
+
+func TestGetBlocksIfRichTextIsEmpty(t *testing.T) {
+	setup()
+	defer teardown()
+	notionAPIKey := "fakeKey"
+	pageID := "pageWithToDoWithNoContent"
+	blocks, err := GetBlocks(notionAPIKey, pageID)
+
+	if err != nil {
+		t.Errorf("Got error: %v", err)
+	}
+
+	if len(blocks) != 1 {
+		t.Errorf("Expected 1 block, got: %v", len(blocks))
+	}
+
 }
 
 func TestAddNewToDoItem(t *testing.T) {
