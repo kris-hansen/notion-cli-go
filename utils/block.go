@@ -83,6 +83,7 @@ func GetBlocks(notionAPIKey, pageID string) ([]Block, error) {
 	defer resp.Body.Close()
 
 	var blockList BlockList
+
 	err = json.NewDecoder(resp.Body).Decode(&blockList)
 	if err != nil {
 		return nil, err
@@ -90,7 +91,7 @@ func GetBlocks(notionAPIKey, pageID string) ([]Block, error) {
 
 	var blocks []Block
 	for _, result := range blockList.Results {
-		if result.Object == "block" && result.ToDo != nil {
+		if result.Object == "block" && result.ToDo != nil && len(result.ToDo.RichText) > 0 {
 			blocks = append(blocks, result)
 		}
 	}
@@ -116,7 +117,9 @@ func GetToDoBlocks(notionAPIKey, blockID string, localTimezone *time.Location) (
 				return nil, err
 			}
 			truncatedTime := lastEditedTime.In(localTimezone).Truncate(time.Minute)
-			todoBlocks = append(todoBlocks, fmt.Sprintf("%d [%s] %s (%s)", len(todoBlocks)+1, checked, block.ToDo.RichText[0].PlainText, truncatedTime.Format("2006-01-02 15:04")))
+
+			element := fmt.Sprintf("%d [%s] %s (%s)", len(todoBlocks)+1, checked, block.ToDo.RichText[0].PlainText, truncatedTime.Format("2006-01-02 15:04"))
+			todoBlocks = append(todoBlocks, element)
 		}
 	}
 
