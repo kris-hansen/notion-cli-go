@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -48,6 +49,15 @@ func GetSupportedBlockTypeNames() []string {
 	}
 	sort.Strings(names)
 	return names
+}
+
+// ConcatRichText concatenates all PlainText segments in a RichText slice
+func ConcatRichText(richText []RichText) string {
+	var parts []string
+	for _, rt := range richText {
+		parts = append(parts, rt.PlainText)
+	}
+	return strings.Join(parts, "")
 }
 
 // IsValidBlockType checks if a block type is supported
@@ -176,7 +186,7 @@ func GetToDoBlocks(notionAPIKey, blockID string, localTimezone *time.Location) (
 			}
 			truncatedTime := lastEditedTime.In(localTimezone).Truncate(time.Minute)
 
-			element := fmt.Sprintf("%d [%s] %s (%s)", len(todoBlocks)+1, checked, block.ToDo.RichText[0].PlainText, truncatedTime.Format("2006-01-02 15:04"))
+			element := fmt.Sprintf("%d [%s] %s (%s)", len(todoBlocks)+1, checked, ConcatRichText(block.ToDo.RichText), truncatedTime.Format("2006-01-02 15:04"))
 			todoBlocks = append(todoBlocks, element)
 		}
 	}
@@ -431,47 +441,47 @@ func GetBlockContent(block Block) string {
 		return "───────────"
 	case "to_do":
 		if block.ToDo != nil && len(block.ToDo.RichText) > 0 {
-			return block.ToDo.RichText[0].PlainText
+			return ConcatRichText(block.ToDo.RichText)
 		}
 	case "paragraph":
 		if block.Paragraph != nil && len(block.Paragraph.RichText) > 0 {
-			return block.Paragraph.RichText[0].PlainText
+			return ConcatRichText(block.Paragraph.RichText)
 		}
 	case "heading_1":
 		if block.Heading1 != nil && len(block.Heading1.RichText) > 0 {
-			return block.Heading1.RichText[0].PlainText
+			return ConcatRichText(block.Heading1.RichText)
 		}
 	case "heading_2":
 		if block.Heading2 != nil && len(block.Heading2.RichText) > 0 {
-			return block.Heading2.RichText[0].PlainText
+			return ConcatRichText(block.Heading2.RichText)
 		}
 	case "heading_3":
 		if block.Heading3 != nil && len(block.Heading3.RichText) > 0 {
-			return block.Heading3.RichText[0].PlainText
+			return ConcatRichText(block.Heading3.RichText)
 		}
 	case "bulleted_list_item":
 		if block.BulletedListItem != nil && len(block.BulletedListItem.RichText) > 0 {
-			return block.BulletedListItem.RichText[0].PlainText
+			return ConcatRichText(block.BulletedListItem.RichText)
 		}
 	case "numbered_list_item":
 		if block.NumberedListItem != nil && len(block.NumberedListItem.RichText) > 0 {
-			return block.NumberedListItem.RichText[0].PlainText
+			return ConcatRichText(block.NumberedListItem.RichText)
 		}
 	case "toggle":
 		if block.Toggle != nil && len(block.Toggle.RichText) > 0 {
-			return block.Toggle.RichText[0].PlainText
+			return ConcatRichText(block.Toggle.RichText)
 		}
 	case "quote":
 		if block.Quote != nil && len(block.Quote.RichText) > 0 {
-			return block.Quote.RichText[0].PlainText
+			return ConcatRichText(block.Quote.RichText)
 		}
 	case "callout":
 		if block.Callout != nil && len(block.Callout.RichText) > 0 {
-			return block.Callout.RichText[0].PlainText
+			return ConcatRichText(block.Callout.RichText)
 		}
 	case "code":
 		if block.Code != nil && len(block.Code.RichText) > 0 {
-			return block.Code.RichText[0].PlainText
+			return ConcatRichText(block.Code.RichText)
 		}
 	}
 	return "(empty)"
