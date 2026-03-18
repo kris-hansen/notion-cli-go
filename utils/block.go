@@ -16,8 +16,6 @@ import (
 
 var baseURL = "https://api.notion.com/v1"
 
-var blocks []Block
-
 // BlockTypeInfo contains display information for a block type
 type BlockTypeInfo struct {
 	Icon  string
