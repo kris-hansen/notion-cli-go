@@ -21,7 +21,7 @@ type Page struct {
 
 func getNotionPage(notionAPIKey, pageID string) (*Page, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", baseURL+"pages/"+pageID, nil)
+	req, err := http.NewRequest("GET", baseURL+"/pages/"+pageID, nil)
 	if err != nil {
 		return nil, err
 	}
