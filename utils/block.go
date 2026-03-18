@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"sort"
 	"time"
@@ -224,7 +224,7 @@ func AddNewToDoItem(notionAPIKey, pageID, text string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyBytes, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("unexpected status code: %d, message: %s", resp.StatusCode, string(bodyBytes))
 	}
 
@@ -597,7 +597,7 @@ func AddBlock(notionAPIKey, pageID, blockType, text string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyBytes, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("unexpected status code: %d, message: %s", resp.StatusCode, string(bodyBytes))
 	}
 
@@ -635,7 +635,7 @@ func DeleteBlock(notionAPIKey, pageID string, order int) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyBytes, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("unexpected status code: %d, message: %s", resp.StatusCode, string(bodyBytes))
 	}
 
