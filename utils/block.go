@@ -124,33 +124,15 @@ type BlockList struct {
 }
 
 func GetBlocks(notionAPIKey, pageID string) ([]Block, error) {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", baseURL+"/blocks/"+pageID+"/children", nil)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %v", err)
-	}
-
-	req.Header.Add("accept", "application/json")
-	req.Header.Add("Notion-Version", "2022-06-28")
-	req.Header.Set("Authorization", "Bearer "+notionAPIKey)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	var blockList BlockList
-
-	err = json.NewDecoder(resp.Body).Decode(&blockList)
+	allBlocks, err := GetAllBlocks(notionAPIKey, pageID, "to_do")
 	if err != nil {
 		return nil, err
 	}
 
 	var blocks []Block
-	for _, result := range blockList.Results {
-		if result.Object == "block" && result.ToDo != nil && len(result.ToDo.RichText) > 0 {
-			blocks = append(blocks, result)
+	for _, block := range allBlocks {
+		if block.ToDo != nil && len(block.ToDo.RichText) > 0 {
+			blocks = append(blocks, block)
 		}
 	}
 	return blocks, nil
@@ -235,34 +217,17 @@ func GetBlockID(notionAPIKey, pageID string, order int) (string, error) {
 	if order < 1 {
 		return "", fmt.Errorf("order must be greater than 0")
 	}
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", baseURL+"/blocks/"+pageID+"/children", nil)
-	if err != nil {
-		return "", fmt.Errorf("error creating request: %v", err)
-	}
 
-	req.Header.Add("accept", "application/json")
-	req.Header.Add("Notion-Version", "2022-06-28")
-	req.Header.Set("Authorization", "Bearer "+notionAPIKey)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	var blockList BlockList
-	err = json.NewDecoder(resp.Body).Decode(&blockList)
+	allBlocks, err := GetAllBlocks(notionAPIKey, pageID, "")
 	if err != nil {
 		return "", err
 	}
 
-	if order > len(blockList.Results) {
+	if order > len(allBlocks) {
 		return "", fmt.Errorf("order number exceeds the number of blocks")
 	}
 
-	return blockList.Results[order-1].ID, nil
-
+	return allBlocks[order-1].ID, nil
 }
 
 func MarkToDoBlockChecked(notionAPIKey, pageID string, order int) error {
