@@ -28,5 +28,5 @@ var addCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(addCmd)
-	checkCmd.Flags().String("text", "", "Text for the new task")
+	addCmd.Flags().String("text", "", "Text for the new task")
 }
